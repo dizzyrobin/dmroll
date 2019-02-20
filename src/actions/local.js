@@ -1,3 +1,6 @@
+import firebase from 'firebase/app';
+import 'firebase/firestore';
+
 import {
   SECTION_CHANGE_TITLE,
   SECTION_DELETE,
@@ -8,14 +11,35 @@ import {
   SET_DATA,
 } from './types';
 
-const firebase = require('firebase');
 
-const firestore = firebase.app().firestore();
+const app = firebase.initializeApp({
+  apiKey: 'AIzaSyCujxJtuP4W2XhKt5KA9b5uTUG8TA9BsWI',
+  authDomain: 'dmroll-7661d.firebaseapp.com',
+  databaseURL: 'https://dmroll-7661d.firebaseio.com',
+  projectId: 'dmroll-7661d',
+  storageBucket: 'dmroll-7661d.appspot.com',
+  messagingSenderId: '491963136623',
+});
+
+const firestore = app.firestore();
+
+const defaultData = {
+  sections: [{
+    title: 'Default',
+    scenarios: [],
+  }],
+};
 
 export const requestDatabaseData = () => async (dispatch) => {
   firestore.collection('users').doc('guest').get()
     .then((snapshot) => {
-      const { data } = snapshot.data();
+      let { data } = snapshot.data();
+      console.log(data);
+      if (data === undefined || data === '') {
+        data = defaultData;
+      } else {
+        data = JSON.parse(data);
+      }
       dispatch({
         type: SET_DATA,
         data,
@@ -27,7 +51,7 @@ export const requestDatabaseData = () => async (dispatch) => {
 };
 
 export const syncDatabaseData = () => async (dispatch, getState) => {
-  const data = getState();
+  const data = JSON.stringify(getState().local);
   firestore.collection('users').doc('guest').set({ data })
     .then(() => {
 
@@ -37,43 +61,53 @@ export const syncDatabaseData = () => async (dispatch, getState) => {
     });
 };
 
-export const sectionChangeTitle = (oldTitle, newTitle) => async (dispatch) => {
+export const sectionChangeTitle = (oldTitle, newTitle) => async (dispatch, getState) => {
   dispatch({
     type: SECTION_CHANGE_TITLE,
     oldTitle,
     newTitle,
   });
+
+  syncDatabaseData()(dispatch, getState);
 };
 
-export const sectionDelete = title => async (dispatch) => {
+export const sectionDelete = title => async (dispatch, getState) => {
   dispatch({
     type: SECTION_DELETE,
     title,
   });
+
+  syncDatabaseData()(dispatch, getState);
 };
 
-export const sectionCreate = title => async (dispatch) => {
+export const sectionCreate = title => async (dispatch, getState) => {
   dispatch({
     type: SECTION_CREATE,
     title,
   });
+
+  syncDatabaseData()(dispatch, getState);
 };
 
-export const scenarioCreate = (sectionTitle, scenarioName, script) => async (dispatch) => {
+export const scenarioCreate = (sectionTitle, scenarioName, script) => async (dispatch, getState) => {
   dispatch({
     type: SCENARIO_CREATE,
     sectionTitle,
     scenarioName,
     script,
   });
+
+  syncDatabaseData()(dispatch, getState);
 };
 
-export const scenarioDelete = (sectionTitle, scenarioName) => async (dispatch) => {
+export const scenarioDelete = (sectionTitle, scenarioName) => async (dispatch, getState) => {
   dispatch({
     type: SCENARIO_DELETE,
     sectionTitle,
     scenarioName,
   });
+
+  syncDatabaseData()(dispatch, getState);
 };
 
 export const scenarioChange = (
@@ -81,7 +115,7 @@ export const scenarioChange = (
   oldScenarioName,
   newScenarioName,
   script,
-) => async (dispatch) => {
+) => async (dispatch, getState) => {
   dispatch({
     type: SCENARIO_MODIFY,
     sectionTitle,
@@ -89,4 +123,6 @@ export const scenarioChange = (
     newScenarioName,
     script,
   });
+
+  syncDatabaseData()(dispatch, getState);
 };

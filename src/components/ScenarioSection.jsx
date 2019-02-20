@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 
 import { withStyles } from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
@@ -21,6 +22,8 @@ import IconEdit from '@material-ui/icons/Edit';
 import { green, red } from '@material-ui/core/colors';
 
 import Scenario from './Scenario';
+
+import * as actions from '../actions/local';
 
 const styles = {
   avatar: {
@@ -44,39 +47,51 @@ const styles = {
   },
 };
 
-const ScenarioSection = ({ title, classes, scenarios }) => {
+const ScenarioSection = ({ title, classes, scenarios, sectionChangeTitle, sectionDelete, scenarioCreate, scenarioDelete, scenarioChange }) => {
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(title);
+
+  const [deleting, setDeleting] = useState(false);
 
   const renderScenarios = scenarios.map(scenario => (
     <Scenario
       key={scenario.name}
       name={scenario.name}
+      script={scenario.script}
       onClick={() => console.log('click')}
-      onRemove={() => console.log('remove')}
+      onDelete={() => scenarioDelete(title, scenario.name)}
+      onEdit={(oldName, newName, script) => scenarioChange(title, oldName, newName, script)}
     />
   ));
 
   return (
     <Card>
       <Dialog
-        open={this.state.open}
-        onClose={this.handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
+        open={deleting}
+        onClose={() => setDeleting(false)}
       >
         <DialogTitle id="alert-dialog-title">DELETE CONFIRMATION</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete the section
+            {`Are you sure you want to delete the section "${title}"?`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={this.handleClose} color="primary">
-            Disagree
+          <Button
+            autoFocus
+            onClick={() => setDeleting(false)}
+            color="primary"
+          >
+            Cancel
           </Button>
-          <Button onClick={this.handleClose} color="primary" autoFocus>
-            Agree
+          <Button
+            color="primary"
+            onClick={() => {
+              setDeleting(false);
+              sectionDelete(title);
+            }}
+          >
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
@@ -105,7 +120,7 @@ const ScenarioSection = ({ title, classes, scenarios }) => {
             <IconButton
               onClick={() => {
                 setEditing(false);
-                // TODO: Make persistent
+                sectionChangeTitle(title, editTitle);
               }}
             >
               <IconCheck />
@@ -117,11 +132,32 @@ const ScenarioSection = ({ title, classes, scenarios }) => {
             )
           }
 
-          <IconButton className={classes.add}>
+          <IconButton
+            className={classes.add}
+            onClick={() => {
+              let name = 'New scenario';
+              if (scenarios.findIndex(e => e.name === name) >= 0) {
+                let i = 2;
+                while (scenarios.findIndex(e => e.name === `${name} ${i}`) >= 0) {
+                  i += 1;
+                  if (i > 999999) { // one million
+                    throw new Error('index out out bounds');
+                  }
+                }
+                name = `${name} ${i}`;
+              }
+              scenarioCreate(title, name, '');
+            }}
+          >
             <IconAdd />
           </IconButton>
 
-          <IconButton className={classes.remove}>
+          <IconButton
+            className={classes.remove}
+            onClick={() => {
+              setDeleting(true);
+            }}
+          >
             <IconRemove />
           </IconButton>
         </div>
@@ -137,4 +173,4 @@ ScenarioSection.propTypes = {
   scenarios: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
-export default withStyles(styles)(ScenarioSection);
+export default connect(null, actions)(withStyles(styles)(ScenarioSection));

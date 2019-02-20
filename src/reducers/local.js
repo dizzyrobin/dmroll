@@ -10,23 +10,8 @@ import {
 
 const defaultState = {
   sections: [{
-    title: 'Magic items',
-    scenarios: [{
-      name: 'Example 1',
-      script: 'You got AAA',
-    }, {
-      name: 'Example 2',
-      script: 'You got BBB',
-    }],
-  }, {
-    title: 'Treasures',
-    scenarios: [{
-      name: 'Example 3',
-      script: 'You got CCC',
-    }, {
-      name: 'Example 4',
-      script: 'You got DDD',
-    }],
+    title: 'Default',
+    scenarios: [],
   }],
 };
 
@@ -50,9 +35,9 @@ export default (state = defaultState, action) => {
       return newState;
 
     case SECTION_DELETE:
-      index = newState.section.findIndex(s => s.title === action.title);
+      index = newState.sections.findIndex(s => s.title === action.title);
       if (index !== undefined) {
-        newState.section.splice(index, 1);
+        newState.sections.splice(index, 1);
       }
       return newState;
 
@@ -64,24 +49,26 @@ export default (state = defaultState, action) => {
       return newState;
 
     case SCENARIO_CREATE: {
-      index = newState.section.findIndex(s => s.title === action.sectionTitle);
-      const { scenarios } = newState.section[index];
-      index = scenarios.findIndex(s => s.name === action.scenarioName);
-      scenarios[index].name = index;
+      index = newState.sections.findIndex(s => s.title === action.sectionTitle);
+      const { scenarios } = newState.sections[index];
+      scenarios.push({
+        name: action.scenarioName,
+        script: action.script,
+      })
       return newState;
     }
 
     case SCENARIO_DELETE: {
-      index = newState.section.findIndex(s => s.title === action.sectionTitle);
-      const { scenarios } = newState.section[index];
+      index = newState.sections.findIndex(s => s.title === action.sectionTitle);
+      const { scenarios } = newState.sections[index];
       index = scenarios.findIndex(s => s.name === action.scenarioName);
       scenarios.splice(index, 1);
       return newState;
     }
 
     case SCENARIO_MODIFY: {
-      index = newState.section.findIndex(s => s.title === action.sectionTitle);
-      const { scenarios } = newState.section[index];
+      index = newState.sections.findIndex(s => s.title === action.sectionTitle);
+      const { scenarios } = newState.sections[index];
       index = scenarios.findIndex(s => s.name === action.oldScenarioName);
       scenarios[index] = {
         name: action.newScenarioName,
