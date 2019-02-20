@@ -15,6 +15,9 @@ import IconRemove from '@material-ui/icons/Delete';
 import IconEdit from '@material-ui/icons/Edit';
 import { red, blue } from '@material-ui/core/colors';
 
+import { wparse, wexec } from '../wscript';
+import { Tooltip } from '@material-ui/core';
+
 const styles = {
   remove: {
     color: red[500],
@@ -22,11 +25,20 @@ const styles = {
   edit: {
     color: blue[500],
   },
+  spanButton: {
+    paddingLeft: 6,
+    paddingRight: 6,
+    paddingTop: 2,
+    paddingBottom: 2,
+    backgroundColor: '#cccccc',
+  },
 };
 
 const Scenario = ({ classes, name, script, onClick, onDelete, onEdit }) => {
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [executing, setExecuting] = useState(false);
+  const [executionResult, setExecutionResult] = useState([]);
   const [editName, setEditName] = useState(name);
   const [editScript, setEditScript] = useState(script);
 
@@ -37,7 +49,10 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit }) => {
         variant="contained"
         size="large"
         color="primary"
-        onClick={() => onClick()}
+        onClick={() => {
+          setExecutionResult(wparse(script));
+          setExecuting(true);
+        }}
       >
         {name}
       </Button>
@@ -132,6 +147,58 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit }) => {
             }}
           >
             Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* EXECUTE MODAL */}
+
+      <Dialog
+        open={executing}
+        onClose={() => {
+          setExecuting(false);
+          setExecutionResult([]);
+        }}
+      >
+        <DialogTitle>
+          {`Results of ${name}`}
+        </DialogTitle>
+        <DialogContent>
+          {executionResult.map((e, i) => {
+            if (e.type === 'text') {
+              return <span key={`${i}-text`}>{e.text}</span>;
+            }
+
+            if (e.type === 'command') {
+              return (
+                <Tooltip title={e.command}>
+                  <Button
+                    key={`${i}-command`}
+                    onClick={() => {
+                      const newExecutionResult = JSON.parse(JSON.stringify(executionResult));
+                      newExecutionResult[i].result = wexec(e.command);
+                      setExecutionResult(newExecutionResult);
+                    }}
+                  >
+                    {e.result}
+                  </Button>
+                </Tooltip>
+              );
+            }
+
+            return undefined;
+          })}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            autoFocus
+            onClick={() => {
+              setExecuting(false);
+              setExecutionResult([]);
+            }}
+            color="primary"
+          >
+            Ok
           </Button>
         </DialogActions>
       </Dialog>
