@@ -1,52 +1,84 @@
-const throwDice = dice => Math.ceil(Math.random() * dice);
-const isInteger = n => Number.isInteger(Number(n));
+export const wThrowDice = dice => Math.ceil(Math.random() * dice);
 
-const execRoll = (args) => {
-  if (typeof args !== 'string') {
-    return undefined;
+export const wThrow = (dice, times, extra) => {
+  let result = 0;
+  for (let i = 0; i < times; i += 1) {
+    result += wThrowDice(dice);
   }
 
-  let tmp = args.split('d');
-  const times = tmp[0];
+  return result + extra;
+};
+
+const isInteger = n => Number.isInteger(Number(n));
+
+const getRollParams = (str) => {
+  let tmp = str.split('d');
+  const times = Number(tmp[0]);
   const diceAndExtra = tmp[1];
   if (diceAndExtra === undefined || !Number.isInteger(Number(times))) {
     return undefined;
   }
 
   tmp = diceAndExtra.split('+');
-  const dice = tmp[0];
-  const extra = tmp[1];
+  const dice = Number(tmp[0]);
+  let extra = Number(tmp[1]);
   if (!Number.isInteger(Number(dice))) {
     return undefined;
   }
 
-  let result = 0;
-  for (let i = 0; i < times; i += 1) {
-    result += throwDice(dice);
+  if (extra !== undefined && !Number.isInteger(Number(extra))) {
+    return undefined;
   }
 
-  if (extra !== undefined) {
-    if (!Number.isInteger(Number(extra))) {
+  if (extra === undefined) {
+    extra = 0;
+  }
+
+  return { dice, extra, times };
+};
+
+export const wExecRoll = (args) => {
+  if (typeof args !== 'string') {
+    return undefined;
+  }
+
+  const { dice, times, extra } = getRollParams(args);
+  return wThrow(dice, times, extra);
+};
+
+const wKindScript = (command) => {
+  const splitted = command.split(' ');
+  switch (splitted[0]) {
+    case 'r':
+    case 'br':
+    case 'n':
+    case 't':
+      return splitted[0];
+    default:
       return undefined;
-    }
-
-    return Number(result) + Number(extra);
   }
-
-  return Number(result);
 };
 
 export const wExecScript = (command) => {
   const splitted = command.split(' ');
   switch (splitted[0]) {
     case 'r':
-      return execRoll(splitted[1]);
+      return wExecRoll(splitted[1]);
+    case 'br':
+      return '';
+    case 't':
+      return splitted[1];
+    case 'n':
+      return {
+        table: splitted[2],
+        roll: splitted[1],
+      };
     default:
       return undefined;
   }
 };
 
-export const wParseScript = (script, exec) => {
+export const wParseScript = (script) => {
   const tokens = [];
   script.split('{').forEach((left, i) => {
     if (i === 0) {
@@ -67,6 +99,11 @@ export const wParseScript = (script, exec) => {
       };
     }
 
+    const kind = wKindScript(e);
+    if (kind === undefined) {
+      throw new Error(`Error: Can't parse the command ${e}`);
+    }
+
     const result = wExecScript(e);
     if (result === undefined) {
       throw new Error(`Error: Can't parse the command ${e}`);
@@ -74,6 +111,7 @@ export const wParseScript = (script, exec) => {
 
     return {
       type: 'command',
+      kind,
       command: e,
       result,
     };
@@ -81,7 +119,7 @@ export const wParseScript = (script, exec) => {
 };
 
 export const wParseTable = (data, exec) => {
-  let rows = data.split('\n').map(e => e.split(';'));
+  let rows = data.split('\n').filter(r => r !== '').map(e => e.split(';'));
   rows = rows.map((row) => {
     const range = row[0];
     const script = row[1];
@@ -111,7 +149,7 @@ export const wParseTable = (data, exec) => {
 
   if (exec === true) {
     const dice = rows[rows.length - 1].end;
-    const result = throwDice(dice);
+    const result = wThrowDice(dice);
     const resultScript = `Rolling 1d${dice}. Result: ${result}.`;
     const selected = rows.find(row => row.start <= result && row.end >= result);
     if (selected === undefined) {

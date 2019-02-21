@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
-import Typography from '@material-ui/core/Typography';
 import IconButton from '@material-ui/core/IconButton';
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -17,6 +16,7 @@ import IconEdit from '@material-ui/icons/Edit';
 import { red, blue } from '@material-ui/core/colors';
 
 import { wExecScript, wParseScript } from '../wscript';
+import Parser from './Parser';
 
 const styles = {
   remove: {
@@ -31,7 +31,7 @@ const styles = {
   },
 };
 
-const Scenario = ({ classes, name, script, onClick, onDelete, onEdit }) => {
+const Scenario = ({ classes, name, script, onClick, onDelete, onEdit, tables }) => {
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
   const [executing, setExecuting] = useState(false);
@@ -165,31 +165,7 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit }) => {
           {`Results of ${name}`}
         </DialogTitle>
         <DialogContent>
-          {executionResult.map((e, i) => {
-            if (e.type === 'text') {
-              return <span key={`${i}-text`}>{e.text}</span>;
-            }
-
-            if (e.type === 'command') {
-              return (
-                <Tooltip title={e.command}>
-                  <Button
-                    className={classes.inlineButton}
-                    key={`${i}-command`}
-                    onClick={() => {
-                      const newExecutionResult = JSON.parse(JSON.stringify(executionResult));
-                      newExecutionResult[i].result = wExecScript(e.command);
-                      setExecutionResult(newExecutionResult);
-                    }}
-                  >
-                    {e.result}
-                  </Button>
-                </Tooltip>
-              );
-            }
-
-            return undefined;
-          })}
+          <Parser result={executionResult} />
         </DialogContent>
         <DialogActions>
           <Button
