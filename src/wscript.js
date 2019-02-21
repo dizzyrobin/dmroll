@@ -1,4 +1,5 @@
 const throwDice = dice => Math.ceil(Math.random() * dice);
+const isInteger = n => Number.isInteger(Number(n));
 
 const execRoll = (args) => {
   if (typeof args !== 'string') {
@@ -35,7 +36,7 @@ const execRoll = (args) => {
   return Number(result);
 };
 
-export const wexec = (command) => {
+export const wExecScript = (command) => {
   const splitted = command.split(' ');
   switch (splitted[0]) {
     case 'r':
@@ -45,9 +46,9 @@ export const wexec = (command) => {
   }
 };
 
-export const wparse = (script) => {
+export const wParseScript = (script, exec) => {
   const tokens = [];
-  script.split('{').map((left, i) => {
+  script.split('{').forEach((left, i) => {
     if (i === 0) {
       tokens.push(left);
     } else {
@@ -66,7 +67,7 @@ export const wparse = (script) => {
       };
     }
 
-    const result = wexec(e);
+    const result = wExecScript(e);
     if (result === undefined) {
       throw new Error(`Error: Can't parse the command ${e}`);
     }
@@ -77,4 +78,48 @@ export const wparse = (script) => {
       result,
     };
   });
+};
+
+export const wParseTable = (data, exec) => {
+  let rows = data.split('\n').map(e => e.split(';'));
+  rows = rows.map((row) => {
+    const range = row[0];
+    const script = row[1];
+    if (row === undefined || range === undefined || script === undefined) {
+      throw new Error('Error parsing table');
+    }
+
+    const splitRange = range.split('-');
+    const startRange = Number(splitRange[0]);
+    let endRange = Number(splitRange[1]);
+    if (splitRange.length === 1) {
+      endRange = startRange;
+    } else if (splitRange.length > 2) {
+      throw new Error('Error parsing table');
+    }
+
+    if (!isInteger(startRange) || !isInteger(endRange)) {
+      throw new Error('Error parsing table');
+    }
+
+    return {
+      start: startRange,
+      end: endRange,
+      script,
+    };
+  });
+
+  if (exec === true) {
+    const dice = rows[rows.length - 1].end;
+    const result = throwDice(dice);
+    const resultScript = `Rolling 1d${dice}. Result: ${result}.`;
+    const selected = rows.find(row => row.start <= result && row.end >= result);
+    if (selected === undefined) {
+      return [{
+        type: 'text',
+        text: `${resultScript} No entry for that result.`,
+      }];
+    }
+    return wParseScript(`${resultScript} ${selected.script}`);
+  }
 };

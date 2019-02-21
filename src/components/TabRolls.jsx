@@ -7,6 +7,7 @@ import Button from '@material-ui/core/Button';
 import IconAdd from '@material-ui/icons/Add';
 
 import ScenarioSection from './ScenarioSection';
+import TableSection from './TableSection';
 
 import * as actions from '../actions/local';
 
@@ -19,7 +20,7 @@ const styles = theme => ({
   },
 });
 
-const TabRolls = ({ classes, sections, sectionCreate }) => {
+const TabRolls = ({ classes, sections, tables, sectionCreate }) => {
   const renderSections = sections.map(section => (
     <div key={section.title}>
       <ScenarioSection title={section.title} scenarios={section.scenarios} />
@@ -53,6 +54,7 @@ const TabRolls = ({ classes, sections, sectionCreate }) => {
         <IconAdd className={classes.rightIcon} />
       </Button>
       {renderSections}
+      <TableSection tables={tables} />
     </div>
   );
 };
@@ -66,6 +68,7 @@ TabRolls.propTypes = {
 
 const mapState = state => ({
   sections: state.local.sections,
+  tables: state.local.tables,
 });
 
 export default connect(mapState, actions)(withStyles(styles, { withTheme: true })(TabRolls));

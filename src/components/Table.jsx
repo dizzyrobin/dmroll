@@ -16,7 +16,7 @@ import IconRemove from '@material-ui/icons/Delete';
 import IconEdit from '@material-ui/icons/Edit';
 import { red, blue } from '@material-ui/core/colors';
 
-import { wExecScript, wParseScript } from '../wscript';
+import { wParseTable, wExecScript, wParseScript } from '../wscript';
 
 const styles = {
   remove: {
@@ -25,19 +25,18 @@ const styles = {
   edit: {
     color: blue[500],
   },
-  inlineButton: {
-    minWidth: 32,
-    padding: '1px 8px',
+  editDataText: {
+    fontFamily: 'monospace',
   },
 };
 
-const Scenario = ({ classes, name, script, onClick, onDelete, onEdit }) => {
+const Table = ({ classes, name, data, onClick, onDelete, onEdit }) => {
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
   const [executing, setExecuting] = useState(false);
   const [executionResult, setExecutionResult] = useState([]);
   const [editName, setEditName] = useState(name);
-  const [editScript, setEditScript] = useState(script);
+  const [editData, setEditData] = useState(data);
 
   return (
     <div>
@@ -47,7 +46,7 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit }) => {
         size="large"
         color="primary"
         onClick={() => {
-          setExecutionResult(wParseScript(script));
+          setExecutionResult(wParseTable(data, true));
           setExecuting(true);
         }}
       >
@@ -75,7 +74,7 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit }) => {
         <DialogTitle>DELETE CONFIRMATION</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {`Are you sure you want to delete the scenario "${name}"?`}
+            {`Are you sure you want to delete the table "${name}"?`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -105,7 +104,7 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit }) => {
         onClose={() => {
           setEditing(false);
           setEditName(name);
-          setEditScript(script);
+          setEditData(data);
         }}
       >
         <DialogTitle>
@@ -119,9 +118,14 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit }) => {
         </DialogTitle>
         <DialogContent>
           <TextField
-            value={editScript}
-            onChange={event => setEditScript(event.target.value)}
-            label="Script"
+            InputProps={{
+              classes: {
+                input: classes.editDataText,
+              },
+            }}
+            value={editData}
+            onChange={event => setEditData(event.target.value)}
+            label="Table data csv (roll;script)"
             multiline
             rows="10"
             margin="normal"
@@ -134,7 +138,7 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit }) => {
             onClick={() => {
               setEditing(false);
               setEditName(name);
-              setEditScript(script);
+              setEditData(data);
             }}
             color="primary"
           >
@@ -144,7 +148,7 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit }) => {
             color="primary"
             onClick={() => {
               setEditing(false);
-              onEdit(name, editName, editScript);
+              onEdit(name, editName, editData);
             }}
           >
             Save
@@ -208,12 +212,12 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit }) => {
   );
 };
 
-Scenario.propTypes = {
+Table.propTypes = {
   onEdit: PropTypes.func.isRequired,
   onClick: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   name: PropTypes.string.isRequired,
-  script: PropTypes.string.isRequired,
+  data: PropTypes.string.isRequired,
 };
 
-export default withStyles(styles)(Scenario);
+export default withStyles(styles)(Table);

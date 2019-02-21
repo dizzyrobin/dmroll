@@ -164,7 +164,7 @@ const ScenarioSection = ({ title, classes, scenarios, sectionChangeTitle, sectio
 
         {renderScenarios}
       </CardContent>
-    </Card >
+    </Card>
   );
 };
 

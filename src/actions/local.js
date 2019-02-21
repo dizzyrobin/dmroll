@@ -9,6 +9,9 @@ import {
   SCENARIO_DELETE,
   SCENARIO_MODIFY,
   SET_DATA,
+  TABLE_CREATE,
+  TABLE_DELETE,
+  TABLE_MODIFY,
 } from './types';
 
 
@@ -28,6 +31,7 @@ const defaultData = {
     title: 'Default',
     scenarios: [],
   }],
+  tables: [],
 };
 
 export const requestDatabaseData = () => async (dispatch) => {
@@ -122,6 +126,40 @@ export const scenarioChange = (
     oldScenarioName,
     newScenarioName,
     script,
+  });
+
+  syncDatabaseData()(dispatch, getState);
+};
+
+export const tableCreate = (tableName, data) => async (dispatch, getState) => {
+  dispatch({
+    type: TABLE_CREATE,
+    tableName,
+    data,
+  });
+
+  syncDatabaseData()(dispatch, getState);
+};
+
+export const tableDelete = tableName => async (dispatch, getState) => {
+  dispatch({
+    type: TABLE_DELETE,
+    tableName,
+  });
+
+  syncDatabaseData()(dispatch, getState);
+};
+
+export const tableChange = (
+  oldTableName,
+  newTableName,
+  data,
+) => async (dispatch, getState) => {
+  dispatch({
+    type: TABLE_MODIFY,
+    oldTableName,
+    newTableName,
+    data,
   });
 
   syncDatabaseData()(dispatch, getState);

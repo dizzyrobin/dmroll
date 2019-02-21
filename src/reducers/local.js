@@ -6,6 +6,9 @@ import {
   SCENARIO_DELETE,
   SCENARIO_MODIFY,
   SET_DATA,
+  TABLE_CREATE,
+  TABLE_DELETE,
+  TABLE_MODIFY,
 } from '../actions/types';
 
 const defaultState = {
@@ -13,6 +16,12 @@ const defaultState = {
     title: 'Default',
     scenarios: [],
   }],
+  tables: [
+    // {
+    //   name: '',
+    //   data: '',
+    // }
+  ],
 };
 
 export default (state = defaultState, action) => {
@@ -54,7 +63,7 @@ export default (state = defaultState, action) => {
       scenarios.push({
         name: action.scenarioName,
         script: action.script,
-      })
+      });
       return newState;
     }
 
@@ -73,6 +82,29 @@ export default (state = defaultState, action) => {
       scenarios[index] = {
         name: action.newScenarioName,
         script: action.script,
+      };
+      return newState;
+    }
+
+    case TABLE_CREATE: {
+      newState.tables.push({
+        name: action.tableName,
+        data: action.data,
+      });
+      return newState;
+    }
+
+    case TABLE_DELETE: {
+      index = newState.tables.findIndex(t => t.name === action.tableName);
+      newState.tables.splice(index, 1);
+      return newState;
+    }
+
+    case TABLE_MODIFY: {
+      index = newState.tables.findIndex(t => t.name === action.oldTableName);
+      newState.tables[index] = {
+        name: action.newTableName,
+        data: action.data,
       };
       return newState;
     }
