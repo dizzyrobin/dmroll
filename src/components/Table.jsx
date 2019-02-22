@@ -16,6 +16,8 @@ import IconRemove from '@material-ui/icons/Delete';
 import IconEdit from '@material-ui/icons/Edit';
 import { red, blue } from '@material-ui/core/colors';
 
+import Parser from './Parser';
+
 import { wParseTable, wExecScript, wParseScript } from '../wscript';
 
 const styles = {
@@ -68,6 +70,8 @@ const Table = ({ classes, name, data, onClick, onDelete, onEdit }) => {
       {/* DELETING MODAL */}
 
       <Dialog
+        fullWidth
+        maxWidth="sm"
         open={deleting}
         onClose={() => setDeleting(false)}
       >
@@ -100,6 +104,8 @@ const Table = ({ classes, name, data, onClick, onDelete, onEdit }) => {
       {/* EDITING MODAL */}
 
       <Dialog
+        fullWidth
+        maxWidth="sm"
         open={editing}
         onClose={() => {
           setEditing(false);
@@ -109,6 +115,7 @@ const Table = ({ classes, name, data, onClick, onDelete, onEdit }) => {
       >
         <DialogTitle>
           <TextField
+            fullWidth
             value={editName}
             onChange={event => setEditName(event.target.value)}
             margin="normal"
@@ -118,6 +125,7 @@ const Table = ({ classes, name, data, onClick, onDelete, onEdit }) => {
         </DialogTitle>
         <DialogContent>
           <TextField
+            fullWidth
             InputProps={{
               classes: {
                 input: classes.editDataText,
@@ -159,6 +167,8 @@ const Table = ({ classes, name, data, onClick, onDelete, onEdit }) => {
       {/* EXECUTE MODAL */}
 
       <Dialog
+        fullWidth
+        maxWidth="sm"
         open={executing}
         onClose={() => {
           setExecuting(false);
@@ -169,31 +179,7 @@ const Table = ({ classes, name, data, onClick, onDelete, onEdit }) => {
           {`Results of ${name}`}
         </DialogTitle>
         <DialogContent>
-          {executionResult.map((e, i) => {
-            if (e.type === 'text') {
-              return <span key={`${i}-text`}>{e.text}</span>;
-            }
-
-            if (e.type === 'command') {
-              return (
-                <Tooltip title={e.command}>
-                  <Button
-                    className={classes.inlineButton}
-                    key={`${i}-command`}
-                    onClick={() => {
-                      const newExecutionResult = JSON.parse(JSON.stringify(executionResult));
-                      newExecutionResult[i].result = wExecScript(e.command);
-                      setExecutionResult(newExecutionResult);
-                    }}
-                  >
-                    {e.result}
-                  </Button>
-                </Tooltip>
-              );
-            }
-
-            return undefined;
-          })}
+          <Parser result={executionResult} setResult={setExecutionResult} />
         </DialogContent>
         <DialogActions>
           <Button

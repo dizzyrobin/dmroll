@@ -29,6 +29,9 @@ const styles = {
     minWidth: 32,
     padding: '1px 8px',
   },
+  modal: {
+    minWidth: '80vw',
+  },
 };
 
 const Scenario = ({ classes, name, script, onClick, onDelete, onEdit, tables }) => {
@@ -69,6 +72,8 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit, tables }) 
       {/* DELETING MODAL */}
 
       <Dialog
+        fullWidth
+        maxWidth="sm"
         open={deleting}
         onClose={() => setDeleting(false)}
       >
@@ -101,6 +106,8 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit, tables }) 
       {/* EDITING MODAL */}
 
       <Dialog
+        fullWidth
+        maxWidth="sm"
         open={editing}
         onClose={() => {
           setEditing(false);
@@ -110,6 +117,7 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit, tables }) 
       >
         <DialogTitle>
           <TextField
+            fullWidth
             value={editName}
             onChange={event => setEditName(event.target.value)}
             margin="normal"
@@ -119,6 +127,7 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit, tables }) 
         </DialogTitle>
         <DialogContent>
           <TextField
+            fullWidth
             value={editScript}
             onChange={event => setEditScript(event.target.value)}
             label="Script"
@@ -155,6 +164,8 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit, tables }) 
       {/* EXECUTE MODAL */}
 
       <Dialog
+        fullWidth
+        maxWidth="sm"
         open={executing}
         onClose={() => {
           setExecuting(false);
@@ -165,7 +176,7 @@ const Scenario = ({ classes, name, script, onClick, onDelete, onEdit, tables }) 
           {`Results of ${name}`}
         </DialogTitle>
         <DialogContent>
-          <Parser result={executionResult} />
+          <Parser result={executionResult} setResult={setExecutionResult} />
         </DialogContent>
         <DialogActions>
           <Button

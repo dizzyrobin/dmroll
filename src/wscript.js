@@ -16,22 +16,23 @@ const getRollParams = (str) => {
   const times = Number(tmp[0]);
   const diceAndExtra = tmp[1];
   if (diceAndExtra === undefined || !Number.isInteger(Number(times))) {
-    return undefined;
+    throw new Error('Error: Rolling str');
   }
 
   tmp = diceAndExtra.split('+');
   const dice = Number(tmp[0]);
-  let extra = Number(tmp[1]);
-  if (!Number.isInteger(Number(dice))) {
-    return undefined;
-  }
-
-  if (extra !== undefined && !Number.isInteger(Number(extra))) {
-    return undefined;
-  }
-
-  if (extra === undefined) {
+  let extra;
+  if (tmp[1] === undefined) {
     extra = 0;
+  } else {
+    extra = Number(tmp[1]);
+  }
+  if (!Number.isInteger(Number(dice))) {
+    throw new Error('Error: Rolling str');
+  }
+
+  if (!Number.isInteger(Number(extra))) {
+    throw new Error('Error: Rolling str');
   }
 
   return { dice, extra, times };
@@ -66,13 +67,20 @@ export const wExecScript = (command) => {
       return wExecRoll(splitted[1]);
     case 'br':
       return '';
-    case 't':
-      return splitted[1];
-    case 'n':
+    case 't': {
+      splitted.splice(0, 1);
+      const table = splitted.join(' ');
+      return table;
+    }
+    case 'n': {
+      const roll = splitted[1];
+      splitted.splice(0, 2)
+      const table = splitted.join(' ');
       return {
-        table: splitted[2],
-        roll: splitted[1],
+        table,
+        roll,
       };
+    }
     default:
       return undefined;
   }
@@ -155,9 +163,9 @@ export const wParseTable = (data, exec) => {
     if (selected === undefined) {
       return [{
         type: 'text',
-        text: `${resultScript} No entry for that result.`,
+        text: 'No entry for that result.',
       }];
     }
-    return wParseScript(`${resultScript} ${selected.script}`);
+    return wParseScript(selected.script);
   }
 };
